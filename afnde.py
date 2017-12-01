@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+import pprint 
+
 class AFNDE(object):
 	def __init__(self, estados, alfabeto, estadoInicial, estadoFinal, automata = {}):
 		super(AFNDE, self).__init__()
@@ -84,15 +87,16 @@ class AFNDE(object):
 	def clausurasE(self):
 		for estado in self.estados:
 			cl = self.fullPath(estado,"e")
-			print ("C{}: {}".format(estado, cl))
-			self.clausuras[estado] = cl
+			cl.sort()
+			print ("C{}: {}".format(tuple(estado), cl))
+			self.clausuras[tuple(estado)] = cl
 			self.initVisited()
 
-	def tableE(self):
+	def makeTransitionsTable(self):
 		for estado in self.estados:
 			for alpha in self.alfabeto:
 				pe = self.findPath(estado,alpha)
-				print("{}{}: {}".format(estado,alpha,pe))
+				print("({},{}): {}".format(estado,alpha,pe))
 				self.tabla[(estado,alpha)] = pe
 
 	def conversion(self, state, symbol):
@@ -107,14 +111,43 @@ class AFNDE(object):
 		else:
 			return self.tabla[(state,symbol)]
 
-	def convFunct(self):
-		convert = []
-		for estado in self.estados:
-			for alpha in self.alfabeto:
-				if alpha=="e":
+	def states(self, states):
+		convert = {}
+		clausuras = []
+		newStates = []
+		for alpha in self.alfabeto:
+			if alpha=="e":
 					continue
-				convert = convert + [[alpha,estado] +self.conversion(estado, alpha)]
-		print(convert)
+			for estado in states:
+				estados = self.conversion(estado, alpha)
+				for estadox in estados:
+					clausuras += self.clausuras[tuple(estadox)]
+					clausuras.sort()
+				newStates += estados
+			convert[tuple(newStates)] = clausuras
+			clausuras = []
+			newStates = []
+		return convert
+
+	def convFunct(self):
+		AFD = {}
+		part ={}
+		queue = [[self.estadoInicial]]
+		while len(queue) != 0:
+			var = queue.pop()
+			part = (self.states(var))
+			print(part)
+			print('')
+			for k,v in part.iteritems():
+				if not(self.clausuras.get(k,0)) :
+					self.clausuras[k] = v
+					queue.append(k)
+				else:
+					if not(AFD.get(k,0)):
+						queue.append(k)
+			AFD[tuple(var)] = part
+		pp = pprint.PrettyPrinter(indent=4)
+		pp.pprint(AFD)
 
 if __name__ == '__main__':
 	a = AFNDE(["0","1","2","3","4","5","6","7","8","9","10"], ["e","a","b"], "0", "10",
@@ -134,8 +167,6 @@ if __name__ == '__main__':
 	#a.getTransitions()
 	a.clausurasE()
 	print("te")
-	a.tableE()
-	print("PATH")
-	print(a.fullPath("1","a"))
+	a.makeTransitionsTable()
 	print("Conversion")
 	a.convFunct()
