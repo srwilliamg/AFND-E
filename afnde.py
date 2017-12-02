@@ -73,7 +73,7 @@ class AFNDE(object):
 			return []
 		else:
 			aux = self.findPath(state,symbol)
-			self.visited[state] = True
+			self.visited[state] = True 
 			queue = queue + aux
 			#print("queue : {}".format(queue))
 			if len(queue) == 0:
@@ -104,9 +104,14 @@ class AFNDE(object):
 			if len(self.tabla[(state, "e")]) == 0:
 				return []
 			else:
+				self.visited[state] = True
 				lista = []
 				for x in self.tabla[(state, "e")]:
-					lista = lista + self.conversion(x,symbol)
+					if self.visited[x]:
+						continue
+					else:
+						self.visited[x] = True
+						lista = lista + self.conversion(x,symbol)
 				return lista
 		else:
 			return self.tabla[(state,symbol)]
@@ -120,6 +125,7 @@ class AFNDE(object):
 					continue
 			for estado in states:
 				estados = self.conversion(estado, alpha)
+				self.initVisited()
 				for estadox in estados:
 					clausuras += self.clausuras[tuple(estadox)]
 					clausuras.sort()
@@ -133,11 +139,14 @@ class AFNDE(object):
 		AFD = {}
 		part ={}
 		queue = [[self.estadoInicial]]
+		#print(queue)
 		while len(queue) != 0:
 			var = queue.pop()
+			print(queue)
+			#print(var)
 			part = (self.states(var))
-			print(part)
-			print('')
+			#print(part)
+			#print('')
 			for k,v in part.iteritems():
 				if not(self.clausuras.get(k,0)) :
 					self.clausuras[k] = v
@@ -150,6 +159,21 @@ class AFNDE(object):
 		pp.pprint(AFD)
 
 if __name__ == '__main__':
+	"""a = AFNDE(["0","1","2","3","4","5","6","7","8","9","10"], ["e","a","b","c"], "0", "10",
+	{
+		"0":[["1","e"],["7","e"]],
+		"1":[["2","e"],["4","e"]],
+		"2":[["3","a"],["3","c"]],
+		"3":[["6","e"],["8","e"]],
+		"4":[["5","b"],["5","b"]],
+		"5":[["6","e"],["7","e"]],
+		"6":[["1","e"],["8","e"]],
+		"7":[["8","a"]],
+		"8":[["9","b"]],
+		"9":[["10","b"]],
+		"10":[['','']]
+	})"""
+
 	a = AFNDE(["0","1","2","3","4","5","6","7","8","9","10"], ["e","a","b"], "0", "10",
 	{
 		"0":[["1","e"],["7","e"]],
